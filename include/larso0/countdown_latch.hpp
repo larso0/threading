@@ -6,7 +6,13 @@
 #define THREADING_COUNTDOWN_LATCH_HPP
 
 #include <mutex>
-#include <condition_variable>
+
+#ifdef __MINGW32__
+	#include "mingw.mutex.h"
+	#include "mingw.condition_variable.h"
+#else
+	#include <condition_variable>
+#endif
 
 namespace larso0
 {

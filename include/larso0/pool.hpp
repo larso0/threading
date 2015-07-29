@@ -5,11 +5,17 @@
 #ifndef THREADING_POOL_HPP
 #define THREADING_POOL_HPP
 
-#include <thread>
 #include <mutex>
+
+#ifdef __MINGW32__
+	#include "mingw.mutex.h"
+	#include "mingw.thread.h"
+#else
+	#include <thread>
+#endif
+
 #include <deque>
 #include <vector>
-#include <atomic>
 #include <functional>
 
 #include "semaphore.hpp"
@@ -30,7 +36,10 @@ namespace larso0
                     while(true)
                     {
                         sem.wait();
-                        if(stop) break;
+                        {
+							std::unique_lock<std::mutex> lk(stop_mut);
+							if(stop) return;
+						}
                         {
                             std::unique_lock<std::mutex> lk(mut);
                             task = tasks.front();
@@ -44,7 +53,10 @@ namespace larso0
 
         ~pool()
         {
-            stop = true;
+			{
+				std::unique_lock<std::mutex> lk(stop_mut);
+				stop = true;
+			}
             for(unsigned i = 0; i < workers.size(); i++)
             {
                 sem.notify();
@@ -57,7 +69,10 @@ namespace larso0
 
         inline void schedule(std::function<void()> f)
         {
-            if(stop) return;
+			{
+				std::unique_lock<std::mutex> lk(stop_mut);
+				if(stop) return;
+			}
             {
                 std::unique_lock<std::mutex> lk(mut);
                 tasks.push_back(f);
@@ -74,7 +89,8 @@ namespace larso0
         std::deque<std::function<void()>> tasks;
         std::mutex mut;
         larso0::semaphore sem;
-        std::atomic<bool> stop;
+		bool stop;
+        std::mutex stop_mut;
     };
 
 } /* namespace larso0 */
