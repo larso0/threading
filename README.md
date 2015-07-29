@@ -30,7 +30,7 @@ int main()
             {
                 { //Lock the mutex before using cout (not thread safe).
                     unique_lock<mutex> lk(mut);
-                    cout << "Thread number " << i << '\n';
+                    cout << "Task number " << i << '\n';
                 }
                 //Countdown the latch when done performing the task.
                 latch.countdown();
