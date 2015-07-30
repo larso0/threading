@@ -8,8 +8,8 @@
 #include <mutex>
 
 #ifdef __MINGW32__
-	#include "mingw.mutex.h"
-	#include "mingw.thread.h"
+	#include <mingw.mutex.h>
+	#include <mingw.thread.h>
 #else
 	#include <thread>
 #endif
